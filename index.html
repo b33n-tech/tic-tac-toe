@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Tic Tac Toe</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+  margin:0;
+  background:#111;
+  color:white;
+  font-family:Arial;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+#grid{
+  display:grid;
+  grid-template-columns:repeat(3,120px);
+  grid-template-rows:repeat(3,120px);
+  gap:10px;
+}
+
+.cell{
+  background:#222;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:48px;
+  cursor:pointer;
+}
+
+#status{
+  margin-top:20px;
+  font-size:20px;
+  color:#aaa;
+}
+</style>
+</head>
+
+<body>
+
+<div id="grid"></div>
+<div id="status">En attente joueurs...</div>
+
+<script>
+const SUPABASE_URL="https://kqhquyeeroskszhblsvq.supabase.co";
+const SUPABASE_KEY="sb_publishable_JMOdzvwVNDBTpHlqKy584Q_Z5SvuYmh";
+
+const sb = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let board = Array(9).fill(null);
+let turn = "X";
+
+const grid = document.getElementById("grid");
+const status = document.getElementById("status");
+
+/* render */
+function draw(){
+  grid.innerHTML="";
+
+  board.forEach((v,i)=>{
+    const div=document.createElement("div");
+    div.className="cell";
+    div.innerText=v || "";
+    grid.appendChild(div);
+  });
+
+  status.innerText = "Tour : " + turn;
+}
+
+/* win check */
+function checkWin(){
+  const wins=[
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  for(const w of wins){
+    const [a,b,c]=w;
+    if(board[a] && board[a]===board[b] && board[a]===board[c]){
+      status.innerText = board[a] + " gagne 🎉";
+      return true;
+    }
+  }
+  return false;
+}
+
+/* play move */
+function play(index, player){
+
+  if(board[index]) return;
+  if(player !== turn) return;
+
+  board[index]=player;
+
+  if(checkWin()) return;
+
+  turn = (turn==="X")?"O":"X";
+  draw();
+}
+
+/* init */
+draw();
+
+/* listen */
+const channel = sb.channel("tictactoe");
+
+channel
+.on("broadcast",{event:"move"}, ({payload})=>{
+  play(payload.index, payload.player);
+})
+.subscribe();
+
+</script>
+
+</body>
+</html>
