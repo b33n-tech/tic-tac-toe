@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+  margin:0;
+  background:#111;
+  color:white;
+  font-family:Arial;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+button{
+  width:90px;
+  height:90px;
+  font-size:24px;
+  margin:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Player O</h2>
+
+<div id="pad"></div>
+
+<script>
+const sb = supabase.createClient(
+"https://kqhquyeeroskszhblsvq.supabase.co",
+"sb_publishable_JMOdzvwVNDBTpHlqKy584Q_Z5SvuYmh"
+);
+
+const channel = sb.channel("tictactoe");
+channel.subscribe();
+
+for(let i=0;i<9;i++){
+  const btn=document.createElement("button");
+  btn.innerText=i;
+  btn.onclick=()=>send(i);
+  document.getElementById("pad").appendChild(btn);
+}
+
+function send(i){
+  channel.send({
+    type:"broadcast",
+    event:"move",
+    payload:{
+      index:i,
+      player:"O"
+    }
+  });
+}
+</script>
+
+</body>
+</html>
